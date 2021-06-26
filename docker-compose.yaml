@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  postgres:
+    container_name: postgres13.3-upload
+    image: postgres:13.3-alpine
+    restart: unless-stopped
+    ports:
+      - '5431:5432'
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+      TZ: "Europe/Moscow"
+    networks:
+      frontend:
+        ipv4_address: 192.168.230.7
+
+  php:
+    container_name: php8.0-upload
+    build: ./docker/php-fpm
+    restart: unless-stopped
+    ports:
+      - '9001:9000'
+    volumes:
+      - ./:/var/www/symfony:cached
+      - ./logs/symfony:/var/www/symfony/var/log:cached
+      - ./data/attachments:/var/www/symfony/public/attachments
+#      - ./docker/php-fpm/ini:/usr/local/etc/php
+    depends_on:
+      - postgres
+    environment:
+      TZ: "Europe/Moscow"
+    networks:
+      frontend:
+        ipv4_address: 192.168.230.6
+
+  nginx:
+    container_name: nginx-upload
+    build: ./docker/nginx
+    restart: unless-stopped
+    ports:
+      - '8081:80'
+    depends_on:
+      - php
+    volumes:
+      - ./:/var/www/symfony
+      - ./logs/nginx/:/var/log/nginx:cached
+#      - ./data/attachments:/var/www/symfony/public/attachments
+    environment:
+      TZ: "Europe/Moscow"
+    networks:
+      frontend:
+        ipv4_address: 192.168.230.5
+
+networks:
+  frontend:
+    ipam:
+      config:
+        - subnet: 192.168.230.0/24
