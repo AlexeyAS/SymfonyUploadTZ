@@ -20,19 +20,22 @@
 
     <div class="example-wrapper">
         <h1 class="text-center">Справочник</h1>
-        <a href="{{ path('referenceImport') }}" class="btn btn-success d-block my-2" id="csv">Импорт CSV</a>
-        {{ dump(data) }}
+        {# <a href="{{ path('referenceImport') }}" class="btn btn-success d-block my-2" id="csv">Импорт CSV</a> #}
+        {{ form_start(form) }}
+        {{ form_end(form) }}
     </div>
+    <br>
+    <div class="row">
+        <div class="col-2">Код</div>
+        <div class="col-4">Название</div>
+        <div class="col-6">Ошибка</div>
+    </div>
+    <hr>
+    {% for row in data %}
         <div class="row">
-            <div class="col-2">Код</div>
-            <div class="col-3">Название</div>
-            <div class="col-7">Ошибка</div>
+            <div class="col-2">{{ row.uniqid }}</div>
+            <div class="col-4">{{ row.filename }}</div>
+            <div class="col-6">{{ row.error }}</div>
         </div>
-        {% for row in data %}
-            <div class="row">
-                <div class="col-2">{{ data.hash }}</div>
-                <div class="col-3">{{ data.name }}</div>
-                <div class="col-7">{{ data.error }}</div>
-            </div>
-        {% endfor %}
+    {% endfor %}
 {% endblock %}

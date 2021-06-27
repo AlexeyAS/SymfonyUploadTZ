@@ -3,6 +3,8 @@
 /data/
 /private/
 /install/
+/public/attachments/
+/public/uploads/
 ###< dev ###
 
 ###> symfony/framework-bundle ###

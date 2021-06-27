@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\ReferenceRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=ReferenceRepository::class)
@@ -12,7 +14,7 @@ class Reference
 {
     /**
      * @ORM\Id
-     * @ORM\GeneratedValue
+     * @ORM\GeneratedValue(strategy="IDENTITY")
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -20,43 +22,48 @@ class Reference
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
-    private $hash;
+    private $uniqId;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", nullable=true)
      */
-    private $name;
+    private $filename;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $error;
 
+    /**
+     * @Assert\File (maxSize = "100m")
+     */
+    private $file;
+
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getHash(): ?string
+    public function getUniqId(): ?string
     {
-        return $this->hash;
+        return $this->uniqId;
     }
 
-    public function setHash(string $hash): self
+    public function setUniqId(string $uniqId): self
     {
-        $this->hash = $hash;
+        $this->uniqId = $uniqId;
 
         return $this;
     }
 
-    public function getName(): ?string
+    public function getFilename()
     {
-        return $this->name;
+        return $this->filename;
     }
 
-    public function setName(?string $name): self
+    public function setFilename($filename)
     {
-        $this->name = $name;
+        $this->filename = $filename;
 
         return $this;
     }
@@ -72,4 +79,45 @@ class Reference
 
         return $this;
     }
+
+    /**
+     * @return UploadedFile
+     */
+    public function getFile()
+    {
+        return $this->file;
+    }
+
+    /**
+     * @param UploadedFile $file
+     */
+    public function setFile(UploadedFile $file = null): void
+    {
+        $this->file = $file;
+    }
+
+
+//    protected function getUploadRootDir()
+//    {
+//        return __DIR__.'/../../public/uploads';
+//    }
+//
+//
+//    public function getAbsolutePath()
+//    {
+//        return null === $this->filename
+//            ? null
+//            : $this->getUploadRootDir().'/'.$this->uniqId.','.$this->filename;
+//    }
+//
+//    /**
+//     * @ORM\PostRemove()
+//     */
+//    public function removeUpload()
+//    {
+//        $file = $this->getAbsolutePath();
+//        if ($file) {
+//            unlink($file);
+//        }
+//    }
 }

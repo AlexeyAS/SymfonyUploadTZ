@@ -24,7 +24,7 @@ services:
     volumes:
       - ./:/var/www/symfony:cached
       - ./logs/symfony:/var/www/symfony/var/log:cached
-      - ./data/attachments:/var/www/symfony/public/attachments
+#      - ./data/attachments:/var/www/symfony/public/attachments
 #      - ./docker/php-fpm/ini:/usr/local/etc/php
     depends_on:
       - postgres
