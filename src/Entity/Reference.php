@@ -14,7 +14,8 @@ class Reference
 {
     /**
      * @ORM\Id
-     * @ORM\GeneratedValue(strategy="IDENTITY")
+     * ORM\GeneratedValue(strategy="IDENTITY")
+     * @ORM\GeneratedValue(strategy="AUTO")
      * @ORM\Column(type="integer")
      */
     private $id;
@@ -38,6 +39,11 @@ class Reference
      * @Assert\File (maxSize = "100m")
      */
     private $file;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $filepath;
 
     public function getId(): ?int
     {
@@ -96,6 +102,17 @@ class Reference
         $this->file = $file;
     }
 
+    public function getFilepath()
+    {
+        return $this->filepath;
+    }
+
+    public function setFilepath($filepath)
+    {
+        $this->filepath = $filepath;
+
+        return $this;
+    }
 
 //    protected function getUploadRootDir()
 //    {

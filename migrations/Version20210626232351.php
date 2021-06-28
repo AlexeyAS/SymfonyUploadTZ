@@ -14,34 +14,23 @@ final class Version20210626232351 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Импорт начальных данных для таблиц reference, user';
+        return 'Связь данных файла со списком';
     }
 
     public function up(Schema $schema): void
     {
-        $this->connection->insert('reference', [
-            'id' => 1,
-            'uniq_id' => '60d7fd907a66c',
-            'filename' => 'file1.csv'
-        ]);
-        $this->connection->insert('"user"', [
-            'id' => 1,
-            'username' => 'admin',
-            'roles' => '["ROLE_ADMIN"]',
-            'password' => '$2y$13$s6cFzCkIsGNhvYQdBU2E4eb83StLaM6uw/I8Gp7nz60Rc6VOjiq1q'
-        ]);
-        $this->addSql('SELECT setval(\'reference_id_seq\', (SELECT MAX(id) FROM reference))');
-        $this->addSql('ALTER TABLE reference ALTER id SET DEFAULT nextval(\'reference_id_seq\')');
-        $this->addSql('SELECT setval(\'user_id_seq\', (SELECT MAX(id) FROM "user"))');
-        $this->addSql('ALTER TABLE "user" ALTER id SET DEFAULT nextval(\'user_id_seq\')');
+        // this up() migration is auto-generated, please modify it to your needs
+        $this->addSql('CREATE SEQUENCE upload_id_seq INCREMENT BY 1 MINVALUE 1 START 1');
+        $this->addSql('CREATE TABLE upload (id INT NOT NULL, hash VARCHAR(255) NOT NULL, name VARCHAR(255) DEFAULT NULL, error TEXT DEFAULT NULL, filepath VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE UNIQUE INDEX UNIQ_17BDE61FD1B862B8 ON upload (hash)');
+        $this->addSql('ALTER TABLE reference ADD filepath VARCHAR(255) DEFAULT NULL');
     }
 
     public function down(Schema $schema): void
     {
-        // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE reference ALTER id DROP DEFAULT');
-        $this->addSql('DELETE FROM reference');
-        $this->addSql('ALTER TABLE "user" ALTER id DROP DEFAULT');
-        $this->addSql('DELETE FROM "user"');
+        $this->addSql('DROP SEQUENCE upload_id_seq CASCADE');
+        $this->addSql('DROP TABLE upload');
+        $this->addSql('ALTER TABLE reference DROP filepath');
+        $this->addSql('ALTER INDEX uniq_aea34913cf63803f RENAME TO uniq_aea34913d1b862b8');
     }
 }

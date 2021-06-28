@@ -24,8 +24,6 @@ services:
     volumes:
       - ./:/var/www/symfony:cached
       - ./logs/symfony:/var/www/symfony/var/log:cached
-#      - ./data/attachments:/var/www/symfony/public/attachments
-#      - ./docker/php-fpm/ini:/usr/local/etc/php
     depends_on:
       - postgres
     environment:
@@ -45,14 +43,28 @@ services:
     volumes:
       - ./:/var/www/symfony
       - ./logs/nginx/:/var/log/nginx:cached
-#      - ./data/attachments:/var/www/symfony/public/attachments
     environment:
       TZ: "Europe/Moscow"
     networks:
       frontend:
         ipv4_address: 192.168.230.5
 
+  rabbitmq:
+    container_name: rabbitmq-upload
+    image: rabbitmq:3.8.17-management-alpine
+#    hostname: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
+      - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - rabbitmq_go_net
+
 networks:
+  rabbitmq_go_net:
+    driver: bridge
   frontend:
     ipam:
       config:

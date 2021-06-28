@@ -1,4 +1,4 @@
-{# templates/reference/index.html.twig #}
+{# templates/reference/data.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}Справочник{% endblock %}
@@ -21,6 +21,7 @@
     <div class="example-wrapper">
         <h1 class="text-center">Справочник</h1>
         {{ form_start(form) }}
+        {{ form_widget(form) }}
         {{ form_end(form) }}
     </div>
     <br>
@@ -30,11 +31,12 @@
         <div class="col-6">Ошибка</div>
     </div>
     <hr>
-    {% for row in data %}
-        <div class="row">
-            <div class="col-2">{{ row.uniqid }}</div>
-            <div class="col-4">{{ row.filename }}</div>
-            <div class="col-6">{{ row.error }}</div>
-        </div>
-    {% endfor %}
+    {{ dump(data) }}
+{#    {% for row in data %}#}
+{#        <div class="row">#}
+{#            <div class="col-2">{{ row.uniqid }}</div>#}
+{#            <div class="col-4">{{ row.filename }}</div>#}
+{#            <div class="col-6">{{ row.error }}</div>#}
+{#        </div>#}
+{#    {% endfor %}#}
 {% endblock %}
