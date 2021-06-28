@@ -17,14 +17,6 @@ use Symfony\Component\Validator\Constraints\File;
 
 class ImportCsvType extends AbstractType
 {
-    private array $options;
-
-    public function __construct(array $options = [])
-    {
-        $resolver = new OptionsResolver();
-        $this->options = $resolver->resolve();
-    }
-
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
@@ -44,29 +36,29 @@ class ImportCsvType extends AbstractType
                     ])
                 ],
                 'attr' => [
-                    'class' => 'd-block mx-auto my-2',
+                    'class' => 'd-block mx-auto my-3 form-control-lg',
                 ],
-                'label_attr' => [ 'class' => 'custom-file-label']
+                'label_attr' => ['class' => 'custom-file-label fs-1 fw-bold form-label']
             ])
             ->add('uniqId', TextType::class, [
-                'required'   => false,
-                'label' => 'Перезаписать файл по коду'
+                'required' => false,
+                'label' => 'Перезаписать файл по коду',
+                'attr' => [
+                    'class' => 'd-block mx-auto my-4',
+                ]
             ])
             ->add('upload', SubmitType::class, [
                 'label' => 'Загрузить',
                 'attr' => [
                     'class' => 'btn btn-success d-block my-2 mx-auto',
                 ]
-            ])
-        ;
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options){
+            ]);
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options) {
             $form = $event->getForm();
-            if (!$options['reference']){
+            if (!$options['reference']) {
                 $form->remove('uniqId');
-                $this->options = ['data_class'=>$options['data_class']];
             }
         });
-
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -74,6 +66,5 @@ class ImportCsvType extends AbstractType
         $resolver->setDefaults([
             'reference' => true
         ]);
-
     }
 }

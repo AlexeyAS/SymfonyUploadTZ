@@ -24,6 +24,7 @@ use SplTempFileObject;
 
 class UploadService
 {
+    /** Получение исходных данных после подтверждения форма */
     public function formSubmit($form, EntityManagerInterface $em): array
     {
         $uniqId = uniqid();
@@ -32,47 +33,54 @@ class UploadService
         /** @var UploadedFile $file */
         $file = $form->get('file')->getData();
 
+        /** Если был введён уникальный ID, ... */
         if ($form->has('uniqId') && $form->get('uniqId')->getData()) {
             $uniqId = $form->get('uniqId')->getData();
         }
+        /** ... Соответствующий ему файл будет перезаписан */
         $oldReference = $em->getRepository(Reference::class)->findOneBy(['uniqId' => $uniqId]);
         if ($oldReference) {
             unlink($oldReference->getFilepath());
             $reference = $oldReference;
         }
+
         return ['uniqId' => $uniqId, 'file' => $file, 'reference' => $reference, 'upload' => $upload];
     }
 
+    /** Переименование, сохранение файла */
     public function saveFile(UploadedFile $file, $uniqId, $fileDir, SluggerInterface $slugger,
-                             EntityManagerInterface $em, Reference $reference): string
+                             EntityManagerInterface $em, Reference $reference)
     {
+        /** Переименование файла */
         $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        // this is needed to safely include the file name as part of the URL
         $safeFilename = $slugger->slug($originalFilename);
         $fileName = $safeFilename . '.' . $file->guessExtension();
         $originalFilename .= $file->guessExtension();
         $newFilename = $uniqId . ',' . $fileName;
+
+        /** Перенос файла из папки tmp */
         try {
             $file->move($fileDir, $newFilename);
         } catch (FileException $e) {
-            // ... handle exception if something happens during file upload
+            throw new FileException("Ошибка при копировании файла из кэша $e");
         }
 
+        /** Запись значений в таблицу */
         $reference->setFilename($fileName);
         $reference->setUniqId($uniqId);
         $reference->setFilepath($fileDir . '/' . $newFilename);
         $reference->setError($this->getErrorName($originalFilename));
-
         $em->persist($reference);
         $em->flush();
-        return $fileName;
     }
 
     /**
+     * Импорт записей в БД, экспорт значений в файл CSV
      * @throws CannotInsertRecord
      */
     public function importCsv(UploadedFile $file, Reference $reference, Upload $upload, EntityManagerInterface $em, SluggerInterface $slugger)
     {
+        /** Чтение из CSV файла, запись массив */
         $array = [];
         $em->getConnection()->getConfiguration()->setSQLLogger(null);
         $reader = Reader::createFromPath($reference->getFilepath());
@@ -81,6 +89,7 @@ class UploadService
             $array[$key] = $row;
         }
 
+        /** Создание SQL запроса мимо ORM */
         $rsm = new ResultSetMapping();
         $rsm->addScalarResult('hash', 'hash');
         $rsm->addScalarResult('name', 'name');
@@ -89,36 +98,27 @@ class UploadService
         for ($i = 0; $i < count($array); ++$i) {
             $array[$i][2] = $this->getErrorName($array[$i][1]);
             $slugger->slug($array[$i][1]);
-//            $filepath = implode('.', explode(',\', $reference->getFilepath()));
             $query = 'INSERT INTO upload (id, hash, name, error, filepath) ' . 'VALUES (nextval(' . "'upload_id_seq'" . '),' . "'" . $array[$i][0] . "', '" . $array[$i][1] . "', '" . $array[$i][2] . "', '" . $reference->getFilepath() . "') ON CONFLICT " . '("hash")' . "DO UPDATE SET name = '" . $array[$i][1] . "', error = '" . $array[$i][2] . "', filepath = '" . $reference->getFilepath() . "'";
             $em->createNativeQuery($query, $rsm)->getResult();
         }
 
-        /** Получить загруженные значения без повтора по КОД*/
-//      $result = $this->getUploaded($hash, $rsm, $em);
-//        $result = array_filter($array, function ($val, $key){
-//            dd($val);
-//        }, ARRAY_FILTER_USE_BOTH);
+        /**
+         * По умолчанию получаем загруженные исходные значения + поле Ошибки
+         * Чтобы получить загруженные значения без повтора по полю КОД - раскомментировать строку ниже
+         */
+//        $array = $this->getUnique($array);
+        /** Получить все значения из таблицы */
+//        $array = $this->getAll($rsm, $em);
 
-        /** Получить все значения */
-        //$result = $this->getAll($rsm, $em);
-
+        /** Запись в файл csv */
         $writer = Writer::createFromFileObject(new SplTempFileObject());
         $writer->insertOne(['КОД', 'НАЗВАНИЕ', 'ОШИБКА']);
         $writer->insertAll(array_slice($array, 1));
-        $writer->output($reference->getFilename());
+        $writer->output($reference->getUniqId() . ',' . $reference->getFilename());
         die;
-
     }
 
-    public function download(Reference $reference): Response
-    {
-        $response = new Response(file_get_contents($reference->getFilepath()));
-        $response->headers->set('Content-Type', 'application/octet-stream');
-        $response->headers->set('Content-Disposition', 'attachment; filename=' . $reference->getFilename());
-        return $response;
-    }
-
+    /** Получение строки ошибки именований (файла, поля Название)*/
     protected function getErrorName($originalFilename): ?string
     {
         $chars = preg_split('//',
@@ -128,16 +128,11 @@ class UploadService
             $string = count($errorsName) > 1 ?
                 'Недопустимые символы "%s" в поле Название' :
                 'Недопустимый символ "%s" в поле Название';
-            return sprintf($string, implode(', ', array_values($errorsName)));
+            return sprintf($string, implode('", "', array_values($errorsName)));
         }
         return null;
     }
 
-//    /** Получить загруженные значения без повторов по КОД*/
-//    private function getUploaded($hash, $rsm, EntityManagerInterface $em){
-//        $query = "SELECT hash, name, error FROM upload WHERE hash IN (". $hash . ") GROUP BY hash, name, error";
-//        return $em->createNativeQuery($query, $rsm)->getResult()[0];
-//    }
     /** Получить все значения из таблицы*/
     private function getAll($rsm, EntityManagerInterface $em)
     {
@@ -145,4 +140,16 @@ class UploadService
         return $em->createNativeQuery($query, $rsm)->getResult();
     }
 
+    /** Получить загруженные значения без повторений по полю КОД */
+    private function getUnique($array): array
+    {
+        $array = array_map("json_decode", array_unique(array_map("json_encode", array_reverse($array))));
+        foreach ($array as $key => $value) {
+            foreach ($array as $itemKey => $item) {
+                if (strstr($item[0], $value[0]) && $itemKey > $key)
+                    unset($array[$itemKey]);
+            }
+        }
+        return array_reverse($array);
+    }
 }

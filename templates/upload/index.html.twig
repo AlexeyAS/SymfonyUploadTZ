@@ -1,7 +1,7 @@
 {# templates/reference/data.html.twig #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Справочник{% endblock %}
+{% block title %}Импорт значений и файла{% endblock %}
 
 {% block body %}
     <style>
@@ -19,24 +19,26 @@
     </style>
 
     <div class="example-wrapper">
-        <h1 class="text-center">Справочник</h1>
         {{ form_start(form) }}
         {{ form_widget(form) }}
         {{ form_end(form) }}
     </div>
     <br>
+    <h1 class="text-center">Последние импортированные значения</h1>
+    <br>
     <div class="row">
         <div class="col-2">Код</div>
-        <div class="col-4">Название</div>
-        <div class="col-6">Ошибка</div>
+        <div class="col-2">Название</div>
+        <div class="col-3">Ошибка</div>
+        <div class="col-5">Путь</div>
     </div>
     <hr>
-    {{ dump(data) }}
-{#    {% for row in data %}#}
-{#        <div class="row">#}
-{#            <div class="col-2">{{ row.uniqid }}</div>#}
-{#            <div class="col-4">{{ row.filename }}</div>#}
-{#            <div class="col-6">{{ row.error }}</div>#}
-{#        </div>#}
-{#    {% endfor %}#}
+    {% for row in data %}
+        <div class="row">
+            <div class="col-2">{{ row.hash }}</div>
+            <div class="col-2">{{ row.name }}</div>
+            <div class="col-3">{{ row.error }}</div>
+            <div class="col-5">{{ row.filepath }}</div>
+        </div>
+    {% endfor %}
 {% endblock %}

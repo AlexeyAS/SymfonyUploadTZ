@@ -13,42 +13,49 @@ use PhpAmqpLib\Message\AMQPMessage;
 use OldSound\RabbitMqBundle\RabbitMq\Producer;
 use App\Entity\Upload;
 use App\Form\ImportCsvType;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Exception;
 
+/**
+ * @IsGranted("ROLE_USER")
+ **/
 class UploadController extends AbstractController
 {
     use RabbitmqTrait;
 
     /**
-     * @throws \Exception
+     * Импорт-экспорт данных, запись значений CSV в таблицу, сохранение файла, отображение среза загруженных значений
+     * @throws Exception
      */
-    #[Route('/upload', name: 'upload')]
+    #[Route('/', name: 'upload')]
     public function index(Request $request, SluggerInterface $slugger, UploadService $uploadService): Response
     {
         $em = $this->getDoctrine()->getManager();
         $fileDir = $this->getParameter('file_directory');
-        $data = $em->getRepository(Upload::class)->findBy([],['id'=>'DESC'], 10,0);
+        $data = $em->getRepository(Upload::class)->findBy([], ['id' => 'DESC'], 20, 0);
         $form = $this->createForm(ImportCsvType::class, new Upload(),
             ['reference' => false, 'data_class' => Upload::class]);
         $form->handleRequest($request);
 
-
-//        $this->produceMessage();
-//        $this->sendMessage();
-
+        /** TODO Методы для работы с RabbitMQ  (тест) */
+        //$this->produceMessage();
+        //$this->sendMessage();
 
         if ($form->isSubmitted() && $form->isValid() && $form->get('file')->getData()) {
+            /** Получение исходных данных */
             $formSubmit = $uploadService->formSubmit($form, $em);
+            /** Переименование, сохранение файла */
             $uploadService->saveFile($formSubmit['file'], $formSubmit['uniqId'],
                 $fileDir, $slugger, $em, $formSubmit['reference']);
+            /** Импорт записей в БД, экспорт значений в файл CSV,  скачивание файла */
             $uploadService->importCsv($formSubmit['file'], $formSubmit['reference'], $formSubmit['upload'], $em, $slugger);
         }
-
         return $this->render('upload/index.html.twig', [
             'data' => $data,
             'form' => $form->createView()
