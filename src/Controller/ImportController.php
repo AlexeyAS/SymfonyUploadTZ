@@ -25,15 +25,19 @@ use Exception;
 /**
  * @IsGranted("ROLE_USER")
  **/
-class UploadController extends AbstractController
+class ImportController extends AbstractController
 {
     use RabbitmqTrait;
 
     /**
-     * Импорт-экспорт данных, запись значений CSV в таблицу, сохранение файла, отображение среза загруженных значений
+     * Импорт-экспорт данных,
+     * запись значений CSV в Upload,
+     * запись данных о файле в Reference,
+     * сохранение файла,
+     * отображение среза загруженных значений
      * @throws Exception
      */
-    #[Route('/', name: 'upload')]
+    #[Route('/', name: 'index')]
     public function index(Request $request, SluggerInterface $slugger, UploadService $uploadService): Response
     {
         $em = $this->getDoctrine()->getManager();
@@ -51,17 +55,14 @@ class UploadController extends AbstractController
         //$this->sendMessage();
 
         if ($form->isSubmitted() && $form->isValid() && $form->get('file')->getData()) {
-        
-//            /** Получение исходных данных */
-//            $formSubmit = $uploadService->formSubmit($form, $em);
-//            /** Переименование, сохранение файла */
-//            $uploadService->saveFile($formSubmit['file'], $formSubmit['uniqId'],
-//                $fileDir, $slugger, $em, $formSubmit['reference']);
-//            /** Импорт записей в БД, экспорт значений в файл CSV,  скачивание файла */
-//            $uploadService->importCsv($formSubmit['file'], $formSubmit['reference'], $formSubmit['upload'], $em, $slugger);
-//
+            /** Получение исходных данных */
+            $formSubmit = $uploadService->formSubmit($form);
+            /** Переименование, сохранение файла */
+            $uploadService->saveFile($formSubmit['file'], $formSubmit['uniqId'], $fileDir, $formSubmit['reference']);
+            /** Импорт записей в БД, экспорт значений в файл CSV,  скачивание файла */
+            $uploadService->importCsv($formSubmit['file'], $formSubmit['reference'], $formSubmit['upload']);
         }
-        return $this->render('upload/index.html.twig', [
+        return $this->render('import/index.html.twig', [
             'data' => $data,
             'count' => $count,
             'form' => $form->createView()
