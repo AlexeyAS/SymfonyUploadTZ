@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Reference;
 use App\Form\ImportCsvType;
 use App\Service\UploadService;
-use App\Traits\RabbitmqTrait;
+//use App\Traits\RabbitmqTrait;
 use League\Csv\Reader;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -21,7 +21,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
  **/
 class ReferenceController extends AbstractController
 {
-    use RabbitmqTrait;
+    //use RabbitmqTrait;
 
     /**
      * Тестовый метод (контроллер), сохранение файла, отображение списка загруженных файлов

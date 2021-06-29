@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Reference;
-use App\Producer\UploadProducer;
+//use App\Producer\UploadProducer;
 use App\Service\UploadService;
-use App\Traits\RabbitmqTrait;
+//use App\Traits\RabbitmqTrait;
 use OldSound\RabbitMqBundle\Tests\RabbitMq\Fixtures\AMQPConnection;
 use OldSound\RabbitMqBundle\Tests\RabbitMq\Fixtures\AMQPSocketConnection;
 use PhpAmqpLib\Connection\AMQPSSLConnection;
@@ -27,7 +27,7 @@ use Exception;
  **/
 class UploadController extends AbstractController
 {
-    use RabbitmqTrait;
+//    use RabbitmqTrait;
 
     /**
      * Импорт-экспорт данных, запись значений CSV в таблицу, сохранение файла, отображение среза загруженных значений
