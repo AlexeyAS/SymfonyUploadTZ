@@ -21,39 +21,38 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
  **/
 class ReferenceController extends AbstractController
 {
-    use RabbitmqTrait;
-
-    /**
-     * Тестовый метод (контроллер), сохранение файла, отображение списка загруженных файлов
-     */
-    #[Route('/reference', name: 'reference')]
-    public function index(Request $request, SluggerInterface $slugger, UploadService $uploadService): Response
-    {
-        $em = $this->getDoctrine()->getManager();
-        $fileDir = $this->getParameter('file_directory');
-        $data = $em->getRepository(Reference::class)->findAll();
-        $form = $this->createForm(ImportCsvType::class, new Reference(),
-            ['reference' => true, 'data_class' => Reference::class]);
-        $form->handleRequest($request);
-
-        /** TODO Методы для работы с RabbitMQ (тест) */
-        //$this->consumeMessage();
-        //$this->receiveMessage();
-
-        if ($form->isSubmitted() && $form->isValid() && $form->get('file')->getData()) {
-            /** Получение исходных данных */
-            $formSubmit = $uploadService->formSubmit($form, $em);
-            /** Переименование, сохранение файла */
-            $uploadService->saveFile($formSubmit['file'], $formSubmit['uniqId'],
-                $fileDir, $slugger, $em, $formSubmit['reference']);
-            /** Скачивание CSV файла */
-            $reader = Reader::createFromPath($formSubmit['reference']->getFilepath());
-            $reader->output($formSubmit['reference']->getUniqId() . ',' . $formSubmit['reference']->getFilename());
-            die;
-        }
-        return $this->render('reference/index.html.twig', [
-            'data' => $data,
-            'form' => $form->createView()
-        ]);
-    }
+//    use RabbitmqTrait;
+//
+//    /**
+//     * Тестовый метод (контроллер), сохранение файла, отображение списка загруженных файлов
+//     */
+//    #[Route('/reference', name: 'reference')]
+//    public function index(Request $request, SluggerInterface $slugger, UploadService $uploadService): Response
+//    {
+//        $em = $this->getDoctrine()->getManager();
+//        $fileDir = $this->getParameter('file_directory');
+//
+//        $form = $this->createForm(ImportCsvType::class, new Reference(),
+//            ['reference' => true, 'data_class' => Reference::class]);
+//        $form->handleRequest($request);
+//
+//        //$this->consumeMessage();
+//        //$this->receiveMessage();
+//
+//        if ($form->isSubmitted() && $form->isValid() && $form->get('file')->getData()) {
+//            /** Получение исходных данных */
+//            $formSubmit = $uploadService->formSubmit($form, $em);
+//            /** Переименование, сохранение файла */
+//            $uploadService->saveFile($formSubmit['file'], $formSubmit['uniqId'],
+//                $fileDir, $slugger, $em, $formSubmit['reference']);
+//            /** Скачивание CSV файла */
+//            $reader = Reader::createFromPath($formSubmit['reference']->getFilepath());
+//            $reader->output($formSubmit['reference']->getUniqId() . ',' . $formSubmit['reference']->getFilename());
+//            die;
+//        }
+//        return $this->render('reference/index.html.twig', [
+//            'data' => $data,
+//            'form' => $form->createView()
+//        ]);
+//    }
 }

@@ -35,7 +35,7 @@ password: *admin*
 Пакет <b>symfony/string</b> был добавлен в конфигурацию композера. <br>
 *Его обновление выполняется только от root*<br>
 *Файл <b>vendor/symfony/string/Slugger/AsciiSlugger.php</b> был добавлен в исключение <b>.gitignore</b>* <br>
-*Если при вызове slugger указать locale="ru", переименование в латиницу не произойдёт*
+*Если при вызове slugger указать locale="ru", переименование в латиницу не произойдёт* <br>
 <b>Дополнительные пакеты:</b> <br>
 https://packagist.org/packages/league/csv
 <br>

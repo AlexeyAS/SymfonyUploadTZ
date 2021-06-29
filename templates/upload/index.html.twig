@@ -19,26 +19,56 @@
     </style>
 
     <div class="example-wrapper">
-        {{ form_start(form) }}
-        {{ form_widget(form) }}
-        {{ form_end(form) }}
+         {{ form_start(form) }}
+         {{ form_widget(form) }}
+         {{ form_end(form) }}
     </div>
     <br>
-    <h1 class="text-center">Последние импортированные значения</h1>
+
     <br>
     <div class="row">
-        <div class="col-2">Код</div>
-        <div class="col-2">Название</div>
-        <div class="col-3">Ошибка</div>
-        <div class="col-5">Путь</div>
+        <div class="col-6">
+            <h3 class="text-center">Последние импортированные значения</h3>
+            <div class="row">
+                <div class="col-2">Код</div>
+                <div class="col-2">Название</div>
+                <div class="col-3">Ошибка</div>
+                <div class="col-5">Путь</div>
+            </div>
+        </div>
+        <div class="col-6">
+            <h3 class="text-center">Список загруженных файлов</h3>
+            <div class="row">
+                <div class="col-2">Код</div>
+                <div class="col-4">Название</div>
+                <div class="col-6">Ошибка</div>
+            </div>
+        </div>
     </div>
     <hr>
-    {% for row in data %}
-        <div class="row">
-            <div class="col-2">{{ row.hash }}</div>
-            <div class="col-2">{{ row.name }}</div>
-            <div class="col-3">{{ row.error }}</div>
-            <div class="col-5">{{ row.filepath }}</div>
+    {% set i = 0 %}
+    {% for i in 0..count %}
+        <div class="row text-break">
+            <div class="col-6">
+                <div class="row">
+                    {% if data.reference[i] is defined %}
+                        <div class="col-2">{{ data.reference[i].uniqId }}</div>
+                        <div class="col-2">{{ data.reference[i].filename }}</div>
+                        <div class="col-3">{{ data.reference[i].error }}</div>
+                        <div class="col-5">{{ data.reference[i].filepath }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="row">
+                    {% if data.upload[i] is defined %}
+                     <div class="col-2 flex-wrap">{{ data.upload[i].hash }}</div>
+                     <div class="col-4 flex-wrap">{{ data.upload[i].name }}</div>
+                     <div class="col-6 flex-wrap">{{ data.upload[i].error }}</div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
+        {% set i = i+1 %}
     {% endfor %}
 {% endblock %}
