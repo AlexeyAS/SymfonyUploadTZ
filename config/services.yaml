@@ -5,10 +5,10 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     file_directory: '%kernel.project_dir%/public/uploads'
-    rabbit_mq.default.host: '172.19.0.1'
-    rabbit_mq.default.port: 5672
-    rabbit_mq.default.user: 'guest'
-    rabbit_mq.default.password: 'guest'
+#    rabbit_mq.default.host: '172.19.0.1'
+#    rabbit_mq.default.port: 5672
+#    rabbit_mq.default.user: 'guest'
+#    rabbit_mq.default.password: 'guest'
 services:
     # default configuration for services in *this* file
     _defaults:
@@ -29,6 +29,6 @@ services:
 #            - '../src/Producer/'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-    app.consumer.upload:
-        class: App\Consumer\UploadConsumer
-        arguments: ['@old_sound_rabbit_mq.upload_file_producer']
+#    app.consumer.upload:
+#        class: App\Consumer\UploadConsumer
+#        arguments: ['@old_sound_rabbit_mq.upload_file_producer']

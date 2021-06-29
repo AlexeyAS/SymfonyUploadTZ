@@ -1,8 +1,8 @@
 ###> prod ###
-#/src/Command/GenerateCsvCommand.php
-#/src/Consumer/UploadConsumer.php
-#/src/Producer/UploadProducer.php
-#/src/Traits/RabbitmqTrait.php
+/src/Command/GenerateCsvCommand.php
+/src/Consumer/UploadConsumer.php
+/src/Producer/UploadProducer.php
+/src/Traits/RabbitmqTrait.php
 ###< prod ###
 
 ###> dev ###
