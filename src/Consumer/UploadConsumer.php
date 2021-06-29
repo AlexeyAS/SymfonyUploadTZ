@@ -8,6 +8,11 @@ use OldSound\RabbitMqBundle\RabbitMq\ConsumerInterface;
 use OldSound\RabbitMqBundle\RabbitMq\ProducerInterface;
 use PhpAmqpLib\Message\AMQPMessage;
 
+/**
+ * @todo Настроить потребителя
+ * Class UploadConsumer
+ * @package App\Consumer
+ */
 class UploadConsumer implements ConsumerInterface
 {
     private $producer;

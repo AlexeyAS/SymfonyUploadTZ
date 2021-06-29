@@ -10,6 +10,11 @@ use PhpAmqpLib\Connection\AMQPSSLConnection;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
+/**
+ * @todo Настроить работу брокера
+ * Trait RabbitmqTrait
+ * @package App\Traits
+ */
 trait RabbitmqTrait
 {
     public function consumeMessage()

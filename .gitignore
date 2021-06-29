@@ -1,8 +1,14 @@
+###> prod ###
+#/src/Command/GenerateCsvCommand.php
+#/src/Consumer/UploadConsumer.php
+#/src/Producer/UploadProducer.php
+#/src/Traits/RabbitmqTrait.php
+###< prod ###
+
 ###> dev ###
 /.idea/
 /data/
 /private/
-/install/
 /public/attachments/
 /public/uploads/
 ###< dev ###
@@ -15,7 +21,17 @@
 /public/bundles/
 /var/
 /logs/
-/vendor/
+
+### symfony/string slugger exception
+!/vendor/
+/vendor/*
+!vendor/symfony/
+/vendor/symfony/*
+!/vendor/symfony/string/
+/vendor/symfony/string/*
+!/vendor/symfony/string/Slugger/
+/vendor/symfony/string/Slugger/*
+!/vendor/symfony/string/Slugger/AsciiSlugger.php
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###

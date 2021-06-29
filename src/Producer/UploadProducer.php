@@ -10,6 +10,9 @@ use OldSound\RabbitMqBundle\RabbitMq\ProducerInterface;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Serializer\Serializer;
 
+/**
+ * @todo Настроить поставщик
+ */
 class UploadProducer extends Producer
 {
     private $serializer;

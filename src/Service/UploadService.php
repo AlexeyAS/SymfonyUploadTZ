@@ -51,9 +51,12 @@ class UploadService
     public function saveFile(UploadedFile $file, $uniqId, $fileDir, SluggerInterface $slugger,
                              EntityManagerInterface $em, Reference $reference)
     {
-        /** Переименование файла */
+        /**
+         * Переименование файла
+         * Если указать locale="ru", slugger не будет переименовывать в латиницу
+         */
         $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $safeFilename = $slugger->slug($originalFilename);
+        $safeFilename = $slugger->slug($originalFilename, '-', 'ru');
         $fileName = $safeFilename . '.' . $file->guessExtension();
         $originalFilename .= $file->guessExtension();
         $newFilename = $uniqId . ',' . $fileName;
@@ -97,7 +100,7 @@ class UploadService
         $rsm->addScalarResult('filepath', 'filepath');
         for ($i = 0; $i < count($array); ++$i) {
             $array[$i][2] = $this->getErrorName($array[$i][1]);
-            $slugger->slug($array[$i][1]);
+            $slugger->slug($array[$i][1], '-', 'ru');
             $query = 'INSERT INTO upload (id, hash, name, error, filepath) ' . 'VALUES (nextval(' . "'upload_id_seq'" . '),' . "'" . $array[$i][0] . "', '" . $array[$i][1] . "', '" . $array[$i][2] . "', '" . $reference->getFilepath() . "') ON CONFLICT " . '("hash")' . "DO UPDATE SET name = '" . $array[$i][1] . "', error = '" . $array[$i][2] . "', filepath = '" . $reference->getFilepath() . "'";
             $em->createNativeQuery($query, $rsm)->getResult();
         }
