@@ -14,7 +14,7 @@ final class Version20210626183537 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Создание таблицы справочник для импорта данных из CSV';
+        return 'Создание таблицы загружаемых файлов';
     }
 
     public function up(Schema $schema): void

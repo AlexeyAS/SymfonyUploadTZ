@@ -9,6 +9,7 @@ use App\Entity\Upload;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\ResultSetMapping;
+use JetBrains\PhpStorm\NoReturn;
 use League\Csv\Reader;
 use League\Csv\Writer;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -24,95 +25,95 @@ use SplTempFileObject;
 
 class UploadService
 {
+    private EntityManagerInterface $em;
+    
+    public function __construct(EntityManagerInterface $em)
+    {
+        $this->em = $em;
+    }
+    
     /** Получение исходных данных после подтверждения форма */
-    public function formSubmit($form, EntityManagerInterface $em): array
+    public function formSubmit($form): array
     {
         $uniqId = uniqid();
         $upload = new Upload();
         $reference = new Reference();
         /** @var UploadedFile $file */
         $file = $form->get('file')->getData();
-
+        
         /** Если был введён уникальный ID, ... */
         if ($form->has('uniqId') && $form->get('uniqId')->getData()) {
             $uniqId = $form->get('uniqId')->getData();
         }
         /** ... Соответствующий ему файл будет перезаписан */
-        $oldReference = $em->getRepository(Reference::class)->findOneBy(['uniqId' => $uniqId]);
+        $oldReference = $this->em->getRepository(Reference::class)->findOneBy(['uniqId' => $uniqId]);
         if ($oldReference) {
             unlink($oldReference->getFilepath());
             $reference = $oldReference;
         }
-
+        
         return ['uniqId' => $uniqId, 'file' => $file, 'reference' => $reference, 'upload' => $upload];
     }
-
+    
     /** Переименование, сохранение файла */
-    public function saveFile(UploadedFile $file, $uniqId, $fileDir, SluggerInterface $slugger,
-                             EntityManagerInterface $em, Reference $reference)
+    public function saveFile(UploadedFile $file, $uniqId, $fileDir, Reference $reference)
     {
         /**
-         * Переименование файла
-         * Если указать locale="ru", slugger не будет переименовывать в латиницу
+         * Переименование файла, получение строки ошибок
          */
-        $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $safeFilename = $slugger->slug($originalFilename, '-', 'ru');
-        $fileName = $safeFilename . '.' . $file->guessExtension();
-        $originalFilename .= $file->guessExtension();
-        $newFilename = $uniqId . ',' . $fileName;
-
+        $safeFilename = $this->getRename($file->getClientOriginalName())['name'] ?: $file->getClientOriginalName();
         /** Перенос файла из папки tmp */
         try {
-            $file->move($fileDir, $newFilename);
+            $file->move($fileDir, $uniqId . ',' . $safeFilename);
         } catch (FileException $e) {
             throw new FileException("Ошибка при копировании файла из кэша $e");
         }
-
+        
         /** Запись значений в таблицу */
-        $reference->setFilename($fileName);
+        $reference->setFilename($safeFilename);
         $reference->setUniqId($uniqId);
-        $reference->setFilepath($fileDir . '/' . $newFilename);
-        $reference->setError($this->getErrorName($originalFilename));
-        $em->persist($reference);
-        $em->flush();
+        $reference->setFilepath($fileDir . '/' . $uniqId . ',' . $safeFilename);
+        $reference->setError($this->getRename($file->getClientOriginalName())['error']);
+        $this->em->persist($reference);
+        $this->em->flush();
     }
-
+    
     /**
      * Импорт записей в БД, экспорт значений в файл CSV
      * @throws CannotInsertRecord
      */
-    public function importCsv(UploadedFile $file, Reference $reference, Upload $upload, EntityManagerInterface $em, SluggerInterface $slugger)
+    #[NoReturn] public function importCsv(UploadedFile $file, Reference $reference, Upload $upload)
     {
         /** Чтение из CSV файла, запись массив */
         $array = [];
-        $em->getConnection()->getConfiguration()->setSQLLogger(null);
+        $this->em->getConnection()->getConfiguration()->setSQLLogger(null);
         $reader = Reader::createFromPath($reference->getFilepath());
         $records = $reader->getRecords();
         foreach ($records as $key => $row) {
             $array[$key] = $row;
         }
-
+        
         /** Создание SQL запроса мимо ORM */
         $rsm = new ResultSetMapping();
         $rsm->addScalarResult('hash', 'hash');
         $rsm->addScalarResult('name', 'name');
         $rsm->addScalarResult('error', 'error');
-        $rsm->addScalarResult('filepath', 'filepath');
+        $rsm->addScalarResult('file_id', 'file_id');
         for ($i = 0; $i < count($array); ++$i) {
-            $array[$i][2] = $this->getErrorName($array[$i][1]);
-            $slugger->slug($array[$i][1], '-', 'ru');
-            $query = 'INSERT INTO upload (id, hash, name, error, filepath) ' . 'VALUES (nextval(' . "'upload_id_seq'" . '),' . "'" . $array[$i][0] . "', '" . $array[$i][1] . "', '" . $array[$i][2] . "', '" . $reference->getFilepath() . "') ON CONFLICT " . '("hash")' . "DO UPDATE SET name = '" . $array[$i][1] . "', error = '" . $array[$i][2] . "', filepath = '" . $reference->getFilepath() . "'";
-            $em->createNativeQuery($query, $rsm)->getResult();
+            $array[$i][2] = $this->getRename($array[$i][1])['error'];
+            $array[$i][1] = $this->getRename($array[$i][1])['name'] ?: $array[$i][1];
+            $query = 'INSERT INTO upload (id, hash, name, error, file_id) ' . 'VALUES (nextval(' . "'upload_id_seq'" . '),' . "'" . $array[$i][0] . "', '" . $array[$i][1] . "', '" . $array[$i][2] . "', '" . $reference->getId() . "') ON CONFLICT " . '("hash")' . "DO UPDATE SET name = '" . $array[$i][1] . "', error = '" . $array[$i][2] . "', file_id = '" . $reference->getId() . "'";
+            $this->em->createNativeQuery($query, $rsm)->getResult();
         }
-
+        
         /**
          * По умолчанию получаем загруженные исходные значения + поле Ошибки
          * Чтобы получить загруженные значения без повтора по полю КОД - раскомментировать строку ниже
          */
 //        $array = $this->getUnique($array);
         /** Получить все значения из таблицы */
-//        $array = $this->getAll($rsm, $em);
-
+//        $array = $this->getAll($rsm);
+        
         /** Запись в файл csv */
         $writer = Writer::createFromFileObject(new SplTempFileObject());
         $writer->insertOne(['КОД', 'НАЗВАНИЕ', 'ОШИБКА']);
@@ -120,29 +121,44 @@ class UploadService
         $writer->output($reference->getUniqId() . ',' . $reference->getFilename());
         die;
     }
-
-    /** Получение строки ошибки именований (файла, поля Название)*/
-    protected function getErrorName($originalFilename): ?string
+    
+    /**
+     * Переименование файла, содержимого CSV по полю Название
+     * Получение ошибки именований (файла, поля Название) и значения
+     */
+    protected function getRename($originalName): array
     {
-        $chars = preg_split('//',
-            $originalFilename, -1, PREG_SPLIT_NO_EMPTY);
-        $errorsName = preg_grep('/^([а-яА-ЯЁёa-zA-Z0-9-.]+)$/u', $chars, PREG_GREP_INVERT);
-        if ($errorsName) {
-            $string = count($errorsName) > 1 ?
+        $chars = preg_split('//u', $originalName, -1, PREG_SPLIT_NO_EMPTY);
+        $errors = preg_grep('/^([а-яА-ЯЁёa-zA-Z0-9-.]+)$/u', $chars, PREG_GREP_INVERT);
+        $result['error'] = $result['name'] = null;
+        if ($errors) {
+            $safeName = '';
+            $keyOld = 0;
+            foreach ($errors as $key => $char) {
+                if ($keyOld == 0) {
+                    $safeName = mb_substr($originalName, $keyOld, $key);
+                } else {
+                    $safeName .= mb_substr($originalName, $keyOld + 1, $key - $keyOld - 1);
+                }
+                $keyOld = $key;
+            }
+            $safeName .= mb_substr($originalName, $keyOld + 1, mb_strlen($originalName) - $keyOld - 1);
+            $string = count($errors) > 1 ?
                 'Недопустимые символы "%s" в поле Название' :
                 'Недопустимый символ "%s" в поле Название';
-            return sprintf($string, implode('", "', array_values($errorsName)));
+            $result['error'] = sprintf($string, implode('", "', array_values($errors)));
+            $result['name'] = $safeName;
         }
-        return null;
+        return $result;
     }
-
+    
     /** Получить все значения из таблицы*/
-    private function getAll($rsm, EntityManagerInterface $em)
+    private function getAll($rsm)
     {
         $query = "SELECT * FROM upload ";
-        return $em->createNativeQuery($query, $rsm)->getResult();
+        return $this->em->createNativeQuery($query, $rsm)->getResult();
     }
-
+    
     /** Получить загруженные значения без повторений по полю КОД */
     private function getUnique($array): array
     {

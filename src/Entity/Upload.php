@@ -34,11 +34,10 @@ class Upload
     private $error;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Reference::class)
-     * @ORM\JoinColumn(name="filepath", referencedColumnName="filepath", nullable=true, onDelete="SET NULL")
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\ManyToOne(targetEntity="Reference", inversedBy="records")
+     * @ORM\JoinColumn(name="file_id", referencedColumnName="id", nullable=true, onDelete="SET NULL")
      */
-    private $filepath;
+    private $fileId;
 
 //    /**
 //     * @Assert\File (maxSize = "1000m")
@@ -86,14 +85,14 @@ class Upload
         return $this;
     }
 
-    public function getFilepath()
+    public function getFileId(): ?Reference
     {
-        return $this->filepath;
+        return $this->fileId;
     }
 
-    public function setFilepath($filepath)
+    public function setFileId(?Reference $fileId)
     {
-        $this->filepath = $filepath;
+        $this->fileId = $fileId;
 
         return $this;
     }

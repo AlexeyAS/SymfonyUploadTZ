@@ -1,10 +1,3 @@
-###> prod ###
-/src/Command/GenerateCsvCommand.php
-/src/Consumer/UploadConsumer.php
-/src/Producer/UploadProducer.php
-/src/Traits/RabbitmqTrait.php
-###< prod ###
-
 ###> dev ###
 /.idea/
 /data/
@@ -23,15 +16,7 @@
 /logs/
 
 ### symfony/string slugger exception
-!/vendor/
-/vendor/*
-!vendor/symfony/
-/vendor/symfony/*
-!/vendor/symfony/string/
-/vendor/symfony/string/*
-!/vendor/symfony/string/Slugger/
-/vendor/symfony/string/Slugger/*
-!/vendor/symfony/string/Slugger/AsciiSlugger.php
+/vendor/
 ###< symfony/framework-bundle ###
 
 ###> symfony/phpunit-bridge ###

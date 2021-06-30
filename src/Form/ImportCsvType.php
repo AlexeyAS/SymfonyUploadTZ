@@ -53,18 +53,13 @@ class ImportCsvType extends AbstractType
                     'class' => 'btn btn-success d-block my-2 mx-auto',
                 ]
             ]);
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options) {
-            $form = $event->getForm();
-            if (!$options['reference']) {
-                $form->remove('uniqId');
-            }
-        });
+//        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($options) {
+//        });
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefaults([
-            'reference' => true
-        ]);
-    }
+//    public function configureOptions(OptionsResolver $resolver): void
+//    {
+//        $resolver->setDefaults([]);
+//    }
+
 }

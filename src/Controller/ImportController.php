@@ -25,22 +25,29 @@ use Exception;
 /**
  * @IsGranted("ROLE_USER")
  **/
-class UploadController extends AbstractController
+class ImportController extends AbstractController
 {
 //    use RabbitmqTrait;
 
     /**
-     * Импорт-экспорт данных, запись значений CSV в таблицу, сохранение файла, отображение среза загруженных значений
+     * Импорт-экспорт данных,
+     * Запись значений CSV в Upload,
+     * Запись данных о файле в Reference,
+     * Сохранение файла,
+     * Отображение среза загруженных значений
      * @throws Exception
      */
-    #[Route('/', name: 'upload')]
-    public function index(Request $request, SluggerInterface $slugger, UploadService $uploadService): Response
+    #[Route('/', name: 'index')]
+    public function index(Request $request, UploadService $uploadService): Response
     {
         $em = $this->getDoctrine()->getManager();
         $fileDir = $this->getParameter('file_directory');
-        $data = $em->getRepository(Upload::class)->findBy([], ['id' => 'DESC'], 20, 0);
-        $form = $this->createForm(ImportCsvType::class, new Upload(),
-            ['reference' => false, 'data_class' => Upload::class]);
+        $data['upload'] = $em->getRepository(Upload::class)
+            ->findBy([], ['id' => 'DESC'], 20, 0);
+        $data['reference'] = $em->getRepository(Reference::class)
+            ->findBy([], ['id' => 'DESC'], 20, 0);
+        $count = count($data['upload'])>count($data['reference']) ? count($data['upload']) : count($data['reference']);
+        $form = $this->createForm(ImportCsvType::class, new Reference());
         $form->handleRequest($request);
 
         /** TODO Методы для работы с RabbitMQ  (тест) */
@@ -49,15 +56,15 @@ class UploadController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid() && $form->get('file')->getData()) {
             /** Получение исходных данных */
-            $formSubmit = $uploadService->formSubmit($form, $em);
+            $formSubmit = $uploadService->formSubmit($form);
             /** Переименование, сохранение файла */
-            $uploadService->saveFile($formSubmit['file'], $formSubmit['uniqId'],
-                $fileDir, $slugger, $em, $formSubmit['reference']);
+            $uploadService->saveFile($formSubmit['file'], $formSubmit['uniqId'], $fileDir, $formSubmit['reference']);
             /** Импорт записей в БД, экспорт значений в файл CSV,  скачивание файла */
-            $uploadService->importCsv($formSubmit['file'], $formSubmit['reference'], $formSubmit['upload'], $em, $slugger);
+            $uploadService->importCsv($formSubmit['file'], $formSubmit['reference'], $formSubmit['upload']);
         }
-        return $this->render('upload/index.html.twig', [
+        return $this->render('import/index.html.twig', [
             'data' => $data,
+            'count' => $count,
             'form' => $form->createView()
         ]);
     }

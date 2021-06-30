@@ -14,7 +14,7 @@ final class Version20210627103227 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Импорт начальных данных для таблиц reference, user';
+        return 'Импорт начальных данных для таблицы user';
     }
 
     public function up(Schema $schema): void
