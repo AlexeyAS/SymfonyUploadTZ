@@ -11,10 +11,14 @@ parameters:
 #    rabbit_mq.default.password: 'guest'
 services:
     # default configuration for services in *this* file
+    console_command.app_generate:
+        class: App\Command\GenerateCsvCommand
+        tags:
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
-
+        bind:
+            $fileDirectory: ['%file_directory%']
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:
@@ -24,6 +28,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
             - '../src/Tests/'
+            - '../src/Command/'
 #            - '../src/Service/'
 #            - '../src/Consumer/'
 #            - '../src/Producer/'
