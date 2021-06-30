@@ -31,14 +31,14 @@ class ImportController extends AbstractController
 
     /**
      * Импорт-экспорт данных,
-     * запись значений CSV в Upload,
-     * запись данных о файле в Reference,
-     * сохранение файла,
-     * отображение среза загруженных значений
+     * Запись значений CSV в Upload,
+     * Запись данных о файле в Reference,
+     * Сохранение файла,
+     * Отображение среза загруженных значений
      * @throws Exception
      */
     #[Route('/', name: 'index')]
-    public function index(Request $request, SluggerInterface $slugger, UploadService $uploadService): Response
+    public function index(Request $request, UploadService $uploadService): Response
     {
         $em = $this->getDoctrine()->getManager();
         $fileDir = $this->getParameter('file_directory');

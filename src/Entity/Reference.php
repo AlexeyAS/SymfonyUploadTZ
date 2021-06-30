@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ReferenceRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -44,6 +46,45 @@ class Reference
      * @ORM\Column(type="string", nullable=true)
      */
     private $filepath;
+
+    /**
+     * @var Collection $records
+     * @ORM\OneToMany(targetEntity="Upload", mappedBy="fileId")
+     */
+    private Collection $records;
+
+    public function __construct()
+    {
+        $this->records = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection|Upload[]
+     */
+    public function getRecords(): ?Collection
+    {
+        return $this->records;
+    }
+
+    public function addProduct(Upload $upload): self
+    {
+        if (!$this->records->contains($upload)) {
+            $this->records[] = $upload;
+            $upload->setFileId($this);
+        }
+        return $this;
+    }
+
+    public function removeProduct(Upload $upload): self
+    {
+        if ($this->records->contains($upload)) {
+            $this->records->removeElement($upload);
+            if ($upload->getFileId() === $this) {
+                $upload->setFileId(null);
+            }
+        }
+        return $this;
+    }
 
     public function getId(): ?int
     {
@@ -89,7 +130,7 @@ class Reference
     /**
      * @return UploadedFile
      */
-    public function getFile()
+    public function getFile(): UploadedFile
     {
         return $this->file;
     }
@@ -97,7 +138,7 @@ class Reference
     /**
      * @param UploadedFile $file
      */
-    public function setFile(UploadedFile $file = null): void
+    public function setFile(UploadedFile $file): void
     {
         $this->file = $file;
     }

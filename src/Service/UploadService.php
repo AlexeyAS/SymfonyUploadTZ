@@ -98,11 +98,11 @@ class UploadService
         $rsm->addScalarResult('hash', 'hash');
         $rsm->addScalarResult('name', 'name');
         $rsm->addScalarResult('error', 'error');
-        $rsm->addScalarResult('filepath', 'filepath');
+        $rsm->addScalarResult('file_id', 'file_id');
         for ($i = 0; $i < count($array); ++$i) {
             $array[$i][2] = $this->getRename($array[$i][1])['error'];
             $array[$i][1] = $this->getRename($array[$i][1])['name'] ?: $array[$i][1];
-            $query = 'INSERT INTO upload (id, hash, name, error, filepath) ' . 'VALUES (nextval(' . "'upload_id_seq'" . '),' . "'" . $array[$i][0] . "', '" . $array[$i][1] . "', '" . $array[$i][2] . "', '" . $reference->getFilepath() . "') ON CONFLICT " . '("hash")' . "DO UPDATE SET name = '" . $array[$i][1] . "', error = '" . $array[$i][2] . "', filepath = '" . $reference->getFilepath() . "'";
+            $query = 'INSERT INTO upload (id, hash, name, error, file_id) ' . 'VALUES (nextval(' . "'upload_id_seq'" . '),' . "'" . $array[$i][0] . "', '" . $array[$i][1] . "', '" . $array[$i][2] . "', '" . $reference->getId() . "') ON CONFLICT " . '("hash")' . "DO UPDATE SET name = '" . $array[$i][1] . "', error = '" . $array[$i][2] . "', file_id = '" . $reference->getId() . "'";
             $this->em->createNativeQuery($query, $rsm)->getResult();
         }
         

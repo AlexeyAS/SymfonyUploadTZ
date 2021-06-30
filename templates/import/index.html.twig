@@ -19,9 +19,9 @@
     </style>
 
     <div class="example-wrapper">
-         {{ form_start(form) }}
-         {{ form_widget(form) }}
-         {{ form_end(form) }}
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        {{ form_end(form) }}
     </div>
     <br>
 
@@ -62,9 +62,9 @@
             <div class="col-6">
                 <div class="row">
                     {% if data.upload[i] is defined %}
-                     <div class="col-2 flex-wrap">{{ data.upload[i].hash }}</div>
-                     <div class="col-4 flex-wrap">{{ data.upload[i].name }}</div>
-                     <div class="col-6 flex-wrap">{{ data.upload[i].error }}</div>
+                        <div class="col-2 flex-wrap">{{ data.upload[i].hash }}</div>
+                        <div class="col-4 flex-wrap">{{ data.upload[i].name }}</div>
+                        <div class="col-6 flex-wrap">{{ data.upload[i].error }}</div>
                     {% endif %}
                 </div>
             </div>
