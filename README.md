@@ -38,14 +38,30 @@ https://packagist.org/packages/php-amqplib/rabbitmq-bundle
 Данный проект реализует импорт csv файлов в БД, переименование файлов и импортируемых данных согласно формату.
 После выгрузки данных происходит скачивание обработанных данных в CSV.
 ### Функционал:
-#### Генерация CSV файла в 100К строк:
+#### Генерация CSV файла >= 100К строк:
 Выполняется из <br>
 ##### Command/GenerateCsvCommand
-С помощью консольной команды (из контейнера докера php8.0-upload):
+С помощью консольной команды и генерирует csv файл с форматом полей КОД, НАИМЕНОВАНИЕ <br>
+
+*Параметры по умолчанию:*
 ```
-docker exec php8.0-upload bin/console app:generate
+bin/console app:generate
 ```
-В директорию загрузки <b>public/uploads</b> (config/services.yaml)
+*Настраиваемые параметры:*
+```
+bin/console app:generate rows lenght --tmp
+```
+*Аргументы:*<br>
+<b>rows</b> - Кол-во строк <br>
+<b>lenght</b> - Длина рандомной части поля НАИМЕНОВАНИЕ <br>
+*Опции:*<br>
+<b>tmp</b> - Сохранение файла в директорию временных файлов /tmp ОС, либо<br>
+В директорию загрузки <b>public/uploads</b> по умолчанию (config/services.yaml)<br>
+
+*Пример:*
+```
+bin/console app:generate 999999 5 --tmp
+```
 ### Подробнее:
 #### Сущности/Контроллеры
 ##### ImportController

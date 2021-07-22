@@ -9,9 +9,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
-use App\Service;
 use SplFileObject;
 use SplTempFileObject;
 use League\Csv\Writer;
@@ -40,10 +38,9 @@ class GenerateCsvCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('row', InputArgument::OPTIONAL, 'Number of rows', 100000)
-            //            ->addOption('num', null, InputOption::VALUE_OPTIONAL, 'number', 100)
-            ->addArgument('lenght', InputArgument::OPTIONAL, 'Number of rows', 8);
-//            ->addOption('lenght', null, InputOption::VALUE_OPTIONAL, 'number', 8);
+            ->addArgument('rows', InputArgument::OPTIONAL, 'Number of rows', 100000)
+            ->addArgument('lenght', InputArgument::OPTIONAL, 'Name lenght', 8)
+            ->addOption('tmp', null, InputOption::VALUE_NONE, 'Save file to /tmp');
     }
 
     /**
@@ -54,31 +51,30 @@ class GenerateCsvCommand extends Command
     {
         $array = [];
         $io = new SymfonyStyle($input, $output);
-        $row = $input->getArgument('row');
+        $rows = $input->getArgument('rows');
         $lenght = $input->getArgument('lenght');
 
-        if ($row) {
-            $io->note(sprintf('You passed an argument: %s', $row));
-        }
-        if ($lenght) {
-            $io->note(sprintf('You passed an argument: %s', $lenght));
-        }
+        if ($rows) $io->note(sprintf('Вы ввели следующее кол-во сток: %s', $rows));
+        if ($lenght) $io->note(sprintf('Вы ввели следующую длину файла: %s', $lenght));
 
         $filename = uniqid('export') . '.csv';
         $writer = Writer::createFromFileObject(new SplTempFileObject());
 
-        for ($i = 0; $i < $row; $i++) {
+        $io->progressStart($rows);
+        for ($i = 0; $i < $rows; $i++) {
             $array[$i]['hash'] = uniqid();
             $array[$i]['name'] = 'имя' . $i + 1 . '-' . $this->generateName($lenght);
-            if ((($i + 1) % 1000) == 0) $io->success(sprintf('Сгенерирована строка: %s', $i + 1));
+            $io->progressAdvance();
         }
+
         $writer->insertOne(['КОД', 'НАЗВАНИЕ']);
         $writer->insertAll($array);
-
         file_put_contents($filename, $writer->toString());
-        $this->filesystem->rename($filename, reset($this->fileDirectory) . '/' . $filename);
 
-//        if ($input->getOption('option1'))
+        if ($input->getOption('tmp'))
+            $this->filesystem->rename($filename, '/tmp/' . $filename);
+        else
+            $this->filesystem->rename($filename, reset($this->fileDirectory) . '/' . $filename);
 
         $io->success('Файл сгенерирован.');
         return Command::SUCCESS;
@@ -94,4 +90,3 @@ class GenerateCsvCommand extends Command
         return $name;
     }
 }
-//todo доделать настройку опций
